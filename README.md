@@ -3,12 +3,12 @@
 ## Decentralized Slot Machine - 99% payout
 Without a central authority to compensate, a slot machine can be built on the blockchain with a 99%+ payout. Slot machines in Las Vegas have a payout of 82% - 95%. This low payout is required in order to generate enough revenue to maintain physical buildings, slot machines, various attractions and more. 
 
-# Membership model
+## Membership model
 - Depending on the quantity of Slot Machine Tokens you lock in, you get better odds
     - Bronze members get to play on a 97% payout machine
     - Silver members get to play on a 98% payout machine
     - Gold members get to play on a 99% payout machine
-# Loss redistribution
+## Loss redistribution
 - A certain % of daily lost tokens gets redistributed to members
-# Play functionality guaranteed by open source math
+## Play functionality guaranteed by open source math
 - All odds will be transparent
