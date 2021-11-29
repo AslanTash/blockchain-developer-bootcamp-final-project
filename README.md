@@ -8,7 +8,8 @@ Without a central authority to compensate, a slot machine can be built on the bl
     - Bronze members get to play on a 97% payout machine
     - Silver members get to play on a 98% payout machine
     - Gold members get to play on a 99% payout machine
-## Loss redistribution
-- A certain % of daily lost tokens gets redistributed to members
 ## Play functionality guaranteed by open source math
 - All odds will be transparent
+
+## Ethereum address for the certification NFT
+0x4450d9a6a273dCabb9Bbe554DD0316E522b467f9
