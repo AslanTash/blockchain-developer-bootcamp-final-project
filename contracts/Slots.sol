@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@chainlink/contracts/src/v0.8/VRFConsumerBase.sol";
 
 contract Slots is ERC20, VRFConsumerBase {
+    address public owner;
     enum MembershipLevel { None, Bronze, Silver, Gold }
     mapping (address => uint256) private staked;
     mapping (address => MembershipLevel) private memberships;
@@ -15,6 +16,8 @@ contract Slots is ERC20, VRFConsumerBase {
     uint256 public bronzeMembership;
     uint256 public silverMembership;
     uint256 public goldMembership;
+
+    string finalCombination;
 
     // VRFConsumerBase variables
     bytes32 internal keyHash;
@@ -29,9 +32,9 @@ contract Slots is ERC20, VRFConsumerBase {
         ) 
     {
         _mint(msg.sender, initialSupply);
-        bronzeMembership = 100000000000000000000; // 10^20, 10^21, 10^22
-        silverMembership = 1000000000000000000000;
-        goldMembership = 10000000000000000000000;
+        bronzeMembership = 10000;
+        silverMembership = 100000;
+        goldMembership = 1000000;
 
 
         /*
@@ -58,6 +61,8 @@ contract Slots is ERC20, VRFConsumerBase {
         combinations["441"] = 400;
         combinations["442"] = 400;
         combinations["443"] = 400;
+
+        owner = msg.sender;
     }
 
     /** 
@@ -94,8 +99,13 @@ contract Slots is ERC20, VRFConsumerBase {
     }
 
     modifier minMaxAmount(uint256 _amount) {
-        require(_amount >= 1000000000000000000);
-        require(_amount <= 1000000000000000000000000);
+        require(_amount >= 1000);
+        require(_amount <= 1000000);
+        _;
+    }
+
+    modifier isOwner(address _address) {
+        require (owner == _address);
         _;
     }
 
@@ -112,14 +122,23 @@ contract Slots is ERC20, VRFConsumerBase {
         }
     }
 
+    function getMembership(address _member) public view returns (uint level) {
+        return uint(memberships[_member]);
+    }
+
+    function getBalance(address _member) public view returns (uint256 balance) {
+        return super.balanceOf(_member);
+    }
+
     function getMembershipMultiplier() private view returns (uint256) {
-        if (memberships[msg.sender] == MembershipLevel.None) return 96;
+        if (memberships[msg.sender] == MembershipLevel.Gold) return 99;
         if (memberships[msg.sender] == MembershipLevel.Bronze) return 97;
         if (memberships[msg.sender] == MembershipLevel.Silver) return 98;
-        else return 99;
+        else return 96;
     }
 
     function stake(uint256 amount) public payable enoughFunds(amount) {
+        _burn(msg.sender, amount);
         staked[msg.sender] += amount;
         totalStaked += amount;
         setMembership();
@@ -129,6 +148,7 @@ contract Slots is ERC20, VRFConsumerBase {
     function unstake(uint256 amount) public payable enoughStaked(amount) {
         staked[msg.sender] -= amount;
         totalStaked -= amount;
+        _mint(msg.sender, amount);
         setMembership();
         emit LogUnstake(amount);
     }
@@ -153,9 +173,21 @@ contract Slots is ERC20, VRFConsumerBase {
         string memory second = convertToCombination(b);
         string memory third = convertToCombination(c);
 
-        string memory combination = string(abi.encodePacked(first, second, third));
+        finalCombination = string(abi.encodePacked(first, second, third));
         
-        uint256 win = combinations[combination];
+        uint256 win = combinations[finalCombination];
+        uint256 winAmount = win * amount / 100;
+        uint256 multiplier = getMembershipMultiplier();
+        _mint(msg.sender, winAmount * multiplier / 100);
+    }
+
+    function getTokens() public payable {
+        _mint(msg.sender, 1000000);
+    }
+
+    function spinOwner(uint256 amount) public payable enoughFunds(amount) minMaxAmount(amount) {
+        _burn(msg.sender, amount);
+        uint256 win = combinations["111"];
         uint256 winAmount = win * amount / 100;
         uint256 multiplier = getMembershipMultiplier();
         _mint(msg.sender, winAmount * multiplier / 100);
