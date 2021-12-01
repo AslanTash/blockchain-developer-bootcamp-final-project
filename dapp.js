@@ -530,6 +530,11 @@ const slotsContract = '0xB1873DE0392fc328bce2B2B265A890490B3fD1d9'
 
 const getTokensButton = document.getElementById('get-tokens');
 const spinButton = document.getElementById('spin-1000');
+const spinAdmin = document.getElementById('spin-admin');
+const gotTokens = document.getElementById('got-tokens');
+const spinResult = document.getElementById('result');
+const stake = document.getElementById('stake');
+const unstake = document.getElementById('unstake');
 window.addEventListener('load', function () {
     // Check for MetaMask
     if (typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask === true) {
@@ -546,6 +551,10 @@ window.addEventListener('load', function () {
     }
     getTokensButton.style.display = "none";
     spinButton.style.display = "none";
+    spinResult.style.display = "none";
+    spinAdmin.style.display = "none";
+    stake.style.display = "none";
+    unstake.style.display = "none";
 });
 
 const mmEnable = document.getElementById('mm-connect');
@@ -558,8 +567,12 @@ mmEnable.onclick = async () => {
     'eth_requestAccounts'})
     mmEnable.style.display = "none";
     mmDetected.style.display = "none";
-    getTokensButton.style.display = "block";
-    spinButton.style.display = "block";
+    getTokensButton.style.display = "inline";
+    spinButton.style.display = "inline";
+    spinResult.style.display = "block";
+    spinAdmin.style.display = "inline";
+    stake.style.display = "inline";
+    unstake.style.display = "inline";
 
     mmCurrentAccount.innerHTML = 'Your address: ' + ethereum.selectedAddress
 
@@ -574,13 +587,56 @@ spinButton.onclick = async () => {
     var web3 = new Web3(window.ethereum)
     const slots = new web3.eth.Contract(slotsABI, slotsContract)
 
-    await slots.methods.spin(1000).call()
+    await slots.methods.spin(1000).send({from : ethereum.selectedAddress})
 }
 
 getTokensButton.onclick = async () => {
+    gotTokens.innerHTML = 'Processeing get tokens...'
     var web3 = new Web3(window.ethereum)
     const slots = new web3.eth.Contract(slotsABI, slotsContract)
+    slots.setProvider(window.ethereum);
+    var metadata = await slots.methods.getTokens().send({from : ethereum.selectedAddress});
+    console.log(metadata)
+    if (metadata[code] == 4001) gotTokens.innerHTML = 'Rejected';
+    gotTokens.innerHTML = 'Received 1000000 SLOTS!'
+    var slotsBalance = await slots.methods.getBalance(ethereum.selectedAddress).call()
+    balanceElement.innerHTML = 'Your SLOTS token balance: ' + slotsBalance
+}
 
-    await slots.methods.getTokens().call()
+spinAdmin.onclick = async () => {
+    spinResult.innerHTML = "spinning...";
+    var web3 = new Web3(window.ethereum)
+    const slots = new web3.eth.Contract(slotsABI, slotsContract)
+    slots.setProvider(window.ethereum)
+    var balanceBefore = await slots.methods.getBalance(ethereum.selectedAddress).call()
+    var metadata = await slots.methods.spinOwner(1000).send({from : ethereum.selectedAddress})
+    console.log(metadata)
+    var balanceAfter = await slots.methods.getBalance(ethereum.selectedAddress).call()
+    var win = balanceAfter - balanceBefore
+    spinResult.innerHTML = "You spun 111 and won " + win
+    balanceElement.innerHTML = 'Your SLOTS token balance: ' + balanceAfter
+}
 
+stake.onclick = async () => {
+    spinResult.innerHTML = "staking..."
+    var web3 = new Web3(window.ethereum)
+    const slots = new web3.eth.Contract(slotsABI, slotsContract)
+    slots.setProvider(window.ethereum)
+    var metadata = await slots.methods.stake(100000).send({from : ethereum.selectedAddress})
+    console.log(metadata)
+    var balanceAfter = await slots.methods.getBalance(ethereum.selectedAddress).call()
+    spinResult.innerHTML = "staked 100000"
+    balanceElement.innerHTML = 'Your SLOTS token balance: ' + balanceAfter
+}
+
+unstake.onclick = async () => {
+    spinResult.innerHTML = "unstaking..."
+    var web3 = new Web3(window.ethereum)
+    const slots = new web3.eth.Contract(slotsABI, slotsContract)
+    slots.setProvider(window.ethereum)
+    var metadata = await slots.methods.unstake(100000).send({from : ethereum.selectedAddress})
+    console.log(metadata)
+    var balanceAfter = await slots.methods.getBalance(ethereum.selectedAddress).call()
+    spinResult.innerHTML = "unstaked 100000"
+    balanceElement.innerHTML = 'Your SLOTS token balance: ' + balanceAfter
 }
